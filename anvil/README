@@ -1,0 +1,79 @@
+ANVIL uses Intel performance counters to detect rowhammer activity
+and protect potential victim rows by selectively reading from them.
+The process of detecting rowhammering activity is depecited on the flowchart
+(anvil.png).
+
+ANVIL is implemented as a linux loadable kernel module. It has been tested
+on an Intel Sandy Bridge machine with Ubuntu 14.02 LTS with linux version
+4.0.0. It should work with any Intel processor with Sandy Bridge and later
+microarchitectures. 
+
+Configuration 
+==============
+
+There are a number of parameters that can be tuned. The values of the 
+parameters affect accuracy of rowhammer detection and the performance overhead
+on non-hammering applications. All parameters are defined in "anvil.h". Below
+is a description of some of the most important parameters:
+
+count_timer_period : This value is "tc" on the flow chart. It specifies the 
+time period to count the number of last-level cache misses in the first stage 
+of detection. It is given in nanoseconds. The default value is 6ms. It can be 
+lowered for faster detection of rowhammering activity.
+
+sample_timer_period: This value is "ts" on the flow chart. It specifies the time
+period during which load and store samples are taken. It is given in nanoseconds.
+The default value is 6ms. It can be lowered for faster detection of rowhammering 
+activity. If this value is lowered, then the store and load sampling rates might 
+need to be increased to get enough samples.
+
+LLC_MISS_THRESHOLD: Last-level cache miss threshold. If the LLC miss count for a 
+period of "tc" is greater than this value, then sampling of addresses is triggered. 
+Lowering this value increases accuracy of detection but increases the frequency of 
+sampling which affects performance of non-hammering applictions.
+
+LD_LAT_SAMPLE_PERIOD: This value controls sampling rate of loads. Lowering this value 
+increases the number of load samples within the sampling period. A very low value 
+stresses the system as more interrupts are generated as the sampling rate increases.
+
+PRE_STR_SAMPLE_PERIOD: This value controls sampling rate of stores. Lowering this value 
+increases the number of store samples within the sampling period. A very low value 
+stresses the system as more interrupts are generated as the sampling rate increases.
+Note that this value is much higher than LD_LAT_SAMPLE_PERIOD. This is because the 
+precise store event samples any stores (those that missed the last-level cache or not).
+Wheter the sample is LLC store miss is checked by software.
+
+Building and Running
+======================
+
+To build the module:
+$make
+
+anvil.ko file is produced from the build
+
+To insert the module:
+$insmod anvil.ko
+
+To remove the module:
+$rmmod anvil.ko
+
+Compatability
+================
+The module is tested on Intel Sandy Bridge. For later microarchitectures the following event
+number values in "anvil.h" might need to be changed according to the microarchitecture.
+These values can be found on Intel® 64 and IA-32 Architectures Software Developer’s Manual.
+
+LOAD_LATENCY_EVENT
+PRECISE_STORE_EVENT
+MEM_LOAD_UOPS_MISC_RETIRED_LLC_MISS
+
+
+On some machines the sampling facility (PEBS) might require a micro-code upgrade. This can be 
+accomplished by running the following command (for ubuntu).
+
+$sudo apt-get install intel-microcode
+
+
+
+
+ 
