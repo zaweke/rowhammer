@@ -1,3 +1,12 @@
+/***************************************************************
+A program to test CLFLUSH-free rowhammering
+
+The program is based on the double-sided rowhammring 
+program at https://github.com/google/rowhammer-test/
+
+**************************************************************/
+
+
 // Copyright 2015, Google, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
